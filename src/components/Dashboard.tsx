@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Youtube, Facebook, Instagram, Image as ImageIcon, FileText, Settings, Upload, Calendar, BarChart } from 'lucide-react';
+import { Youtube, Facebook, Instagram, Image as ImageIcon, FileText, Settings, LogOut, User } from 'lucide-react';
 import YouTubeTab from './tabs/YouTubeTab';
 import FacebookTab from './tabs/FacebookTab';
 import InstagramTab from './tabs/InstagramTab';
@@ -7,7 +7,12 @@ import PinterestTab from './tabs/PinterestTab';
 import WordPressTab from './tabs/WordPressTab';
 import SettingsTab from './tabs/SettingsTab';
 
-const Dashboard: React.FC = () => {
+interface DashboardProps {
+  user: any;
+  onLogout: () => void;
+}
+
+const Dashboard: React.FC<DashboardProps> = ({ user, onLogout }) => {
   const [activeTab, setActiveTab] = useState('youtube');
 
   const tabs = [
@@ -41,7 +46,7 @@ const Dashboard: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-black">
       {/* Header */}
-      <header className="bg-black/20 backdrop-blur-lg border-b border-purple-500/20">
+      <header className="bg-black/20 backdrop-blur-lg border-b border-purple-500/20 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <h1 className="text-2xl font-bold text-white">SocialSync Pro Dashboard</h1>
@@ -50,6 +55,19 @@ const Dashboard: React.FC = () => {
                 <div className="w-2 h-2 bg-green-400 rounded-full"></div>
                 <span className="text-sm text-gray-300">All Systems Online</span>
               </div>
+              
+              <div className="flex items-center space-x-2 bg-black/30 rounded-lg px-3 py-2">
+                <User className="w-4 h-4 text-purple-400" />
+                <span className="text-sm text-gray-300">{user?.name || 'User'}</span>
+              </div>
+              
+              <button
+                onClick={onLogout}
+                className="flex items-center space-x-2 bg-red-600/20 hover:bg-red-600/30 text-red-400 px-3 py-2 rounded-lg transition-all"
+              >
+                <LogOut className="w-4 h-4" />
+                <span className="text-sm">Logout</span>
+              </button>
             </div>
           </div>
         </div>

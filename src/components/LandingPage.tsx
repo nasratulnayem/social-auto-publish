@@ -1,42 +1,71 @@
 import React, { useState } from 'react';
-import { Play, CheckCircle, Star, Users, Calendar, Zap } from 'lucide-react';
+import { Play, CheckCircle, Star, Users, Calendar, Zap, Shield, Globe, Smartphone } from 'lucide-react';
 
 interface LandingPageProps {
-  onLogin: () => void;
+  onLogin: (userData: any) => void;
 }
 
 const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
   const [activeTab, setActiveTab] = useState('info');
+  const [loginForm, setLoginForm] = useState({ email: '', password: '' });
 
   const features = [
     { icon: Calendar, title: 'Smart Scheduling', desc: 'Schedule posts across all platforms with AI optimization' },
     { icon: Zap, title: 'AI Content Generation', desc: 'Generate titles, descriptions with Ollama integration' },
     { icon: Users, title: 'Multi-Platform', desc: 'YouTube, Facebook, Instagram, Pinterest & WordPress' },
-    { icon: CheckCircle, title: 'Bulk Upload', desc: 'Upload hundreds of videos with CSV/JSON files' }
+    { icon: CheckCircle, title: 'Bulk Upload', desc: 'Upload hundreds of videos with CSV/JSON files' },
+    { icon: Shield, title: 'Secure OAuth', desc: 'Safe and secure account connections' },
+    { icon: Globe, title: 'Global Reach', desc: 'Manage audiences worldwide' },
+    { icon: Smartphone, title: 'Mobile Ready', desc: 'Works perfectly on all devices' },
+    { icon: Star, title: 'Analytics', desc: 'Track performance across platforms' }
   ];
 
   const plans = [
     {
       name: 'Starter',
       price: '$29',
-      features: ['5 Channels', '100 Posts/Month', 'Basic Scheduling', 'Email Support']
+      features: ['5 Channels', '100 Posts/Month', 'Basic Scheduling', 'Email Support', 'OAuth Integration']
     },
     {
       name: 'Professional',
       price: '$79',
-      features: ['25 Channels', '1000 Posts/Month', 'AI Content Generation', 'Priority Support', 'Analytics']
+      features: ['25 Channels', '1000 Posts/Month', 'AI Content Generation', 'Priority Support', 'Analytics', 'Bulk Upload']
     },
     {
       name: 'Enterprise',
       price: '$199',
-      features: ['Unlimited Channels', 'Unlimited Posts', 'Custom AI Models', '24/7 Support', 'White Label']
+      features: ['Unlimited Channels', 'Unlimited Posts', 'Custom AI Models', '24/7 Support', 'White Label', 'API Access']
     }
   ];
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Simulate login - in real app would validate credentials
+    const userData = {
+      id: 1,
+      email: loginForm.email,
+      name: loginForm.email.split('@')[0],
+      plan: 'Professional',
+      joinDate: new Date().toISOString()
+    };
+    onLogin(userData);
+  };
+
+  const handleDemoLogin = () => {
+    const demoUser = {
+      id: 1,
+      email: 'demo@socialsync.com',
+      name: 'Demo User',
+      plan: 'Professional',
+      joinDate: new Date().toISOString()
+    };
+    onLogin(demoUser);
+  };
 
   return (
     <div className="min-h-screen">
       {/* Header */}
-      <nav className="bg-black/20 backdrop-blur-lg border-b border-purple-500/20">
+      <nav className="bg-black/20 backdrop-blur-lg border-b border-purple-500/20 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center space-x-2">
@@ -75,7 +104,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
           <div className="space-y-16">
             {/* Hero Section */}
             <div className="text-center space-y-8">
-              <h1 className="text-6xl font-bold text-white leading-tight">
+              <h1 className="text-4xl md:text-6xl font-bold text-white leading-tight">
                 Manage All Your
                 <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent block">
                   Social Media
@@ -85,23 +114,53 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
               <p className="text-xl text-gray-300 max-w-3xl mx-auto">
                 Upload, schedule, and manage content across YouTube, Facebook, Instagram, Pinterest, and WordPress with AI-powered content generation and smart scheduling.
               </p>
-              <button
-                onClick={onLogin}
-                className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-8 py-4 rounded-full text-lg font-semibold hover:from-purple-500 hover:to-pink-500 transition-all transform hover:scale-105"
-              >
-                Start Free Trial
-              </button>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <button
+                  onClick={handleDemoLogin}
+                  className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-8 py-4 rounded-full text-lg font-semibold hover:from-purple-500 hover:to-pink-500 transition-all transform hover:scale-105"
+                >
+                  Try Demo Now
+                </button>
+                <button
+                  onClick={() => setActiveTab('login')}
+                  className="border-2 border-purple-500 text-purple-400 px-8 py-4 rounded-full text-lg font-semibold hover:bg-purple-500 hover:text-white transition-all"
+                >
+                  Get Started
+                </button>
+              </div>
             </div>
 
             {/* Features Grid */}
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
               {features.map((feature, index) => (
-                <div key={index} className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-purple-500/20 hover:border-purple-500/40 transition-all">
+                <div key={index} className="bg-white/10 backdrop-blur-lg rounded-xl p-6 border border-purple-500/20 hover:border-purple-500/40 transition-all hover:transform hover:scale-105">
                   <feature.icon className="w-12 h-12 text-purple-400 mb-4" />
                   <h3 className="text-xl font-semibold text-white mb-2">{feature.title}</h3>
                   <p className="text-gray-300">{feature.desc}</p>
                 </div>
               ))}
+            </div>
+
+            {/* How It Works */}
+            <div className="text-center space-y-12">
+              <h2 className="text-4xl font-bold text-white">How It Works</h2>
+              <div className="grid md:grid-cols-3 gap-8">
+                <div className="space-y-4">
+                  <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center mx-auto text-white text-2xl font-bold">1</div>
+                  <h3 className="text-xl font-semibold text-white">Connect Accounts</h3>
+                  <p className="text-gray-300">Securely connect your social media accounts with OAuth authentication</p>
+                </div>
+                <div className="space-y-4">
+                  <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center mx-auto text-white text-2xl font-bold">2</div>
+                  <h3 className="text-xl font-semibold text-white">Create Content</h3>
+                  <p className="text-gray-300">Upload videos, images, or use AI to generate engaging content</p>
+                </div>
+                <div className="space-y-4">
+                  <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center mx-auto text-white text-2xl font-bold">3</div>
+                  <h3 className="text-xl font-semibold text-white">Schedule & Publish</h3>
+                  <p className="text-gray-300">Schedule posts or publish immediately across all platforms</p>
+                </div>
+              </div>
             </div>
           </div>
         )}
@@ -135,7 +194,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
                     ))}
                   </ul>
                   <button 
-                    onClick={onLogin}
+                    onClick={() => setActiveTab('login')}
                     className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 rounded-lg font-semibold hover:from-purple-500 hover:to-pink-500 transition-all"
                   >
                     Get Started
@@ -150,31 +209,54 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
           <div className="max-w-md mx-auto">
             <div className="bg-white/10 backdrop-blur-lg rounded-xl p-8 border border-purple-500/20">
               <h2 className="text-3xl font-bold text-white mb-6 text-center">Welcome Back</h2>
-              <form className="space-y-6">
+              <form onSubmit={handleLogin} className="space-y-6">
                 <div>
                   <label className="block text-gray-300 mb-2">Email</label>
                   <input
                     type="email"
+                    value={loginForm.email}
+                    onChange={(e) => setLoginForm(prev => ({ ...prev, email: e.target.value }))}
                     className="w-full bg-black/20 border border-purple-500/30 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-purple-500"
                     placeholder="Enter your email"
+                    required
                   />
                 </div>
                 <div>
                   <label className="block text-gray-300 mb-2">Password</label>
                   <input
                     type="password"
+                    value={loginForm.password}
+                    onChange={(e) => setLoginForm(prev => ({ ...prev, password: e.target.value }))}
                     className="w-full bg-black/20 border border-purple-500/30 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-purple-500"
                     placeholder="Enter your password"
+                    required
                   />
                 </div>
                 <button
-                  type="button"
-                  onClick={onLogin}
+                  type="submit"
                   className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 rounded-lg font-semibold hover:from-purple-500 hover:to-pink-500 transition-all"
                 >
                   Login to Dashboard
                 </button>
               </form>
+              
+              <div className="mt-6 text-center">
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-purple-500/30"></div>
+                  </div>
+                  <div className="relative flex justify-center text-sm">
+                    <span className="px-2 bg-gradient-to-br from-purple-900 via-purple-800 to-black text-gray-300">Or</span>
+                  </div>
+                </div>
+                
+                <button
+                  onClick={handleDemoLogin}
+                  className="mt-4 w-full bg-gray-600 text-white py-3 rounded-lg font-semibold hover:bg-gray-500 transition-all"
+                >
+                  Try Demo Account
+                </button>
+              </div>
             </div>
           </div>
         )}

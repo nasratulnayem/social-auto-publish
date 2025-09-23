@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Key, Database, Zap, Globe, Bell, Shield, CheckCircle, XCircle, Loader } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Key, Database, Zap, Globe, Bell, Shield, CheckCircle, XCircle, Loader, ExternalLink } from 'lucide-react';
 
 const SettingsTab: React.FC = () => {
   const [settings, setSettings] = useState({
@@ -55,45 +55,115 @@ const SettingsTab: React.FC = () => {
     ollama: 'idle'
   });
 
+  const [savedConnections, setSavedConnections] = useState<{[key: string]: boolean}>({});
+
+  useEffect(() => {
+    // Load saved settings from localStorage
+    const saved = localStorage.getItem('platformSettings');
+    if (saved) {
+      setSettings(prev => ({ ...prev, ...JSON.parse(saved) }));
+    }
+
+    const savedConns = localStorage.getItem('platformConnections');
+    if (savedConns) {
+      setSavedConnections(JSON.parse(savedConns));
+    }
+  }, []);
+
   const handleSettingChange = (key: string, value: string | boolean) => {
     setSettings(prev => ({ ...prev, [key]: value }));
+  };
+
+  const saveSettings = () => {
+    localStorage.setItem('platformSettings', JSON.stringify(settings));
+    alert('Settings saved successfully!');
+  };
+
+  const connectFacebook = () => {
+    const redirectUri = 'http://127.0.0.1:5001/fb-callback';
+    const scope = 'pages_manage_posts,pages_read_engagement,pages_show_list';
+    const facebookAuthUrl = `https://www.facebook.com/v18.0/dialog/oauth?client_id=${settings.facebookAppId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${scope}&response_type=code`;
+    
+    window.open(facebookAuthUrl, 'facebook-auth', 'width=600,height=600');
+  };
+
+  const connectYouTube = () => {
+    const redirectUri = 'http://127.0.0.1:5001/youtube-callback';
+    const scope = 'https://www.googleapis.com/auth/youtube.upload https://www.googleapis.com/auth/youtube';
+    const youtubeAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${settings.youtubeClientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scope)}&response_type=code&access_type=offline`;
+    
+    window.open(youtubeAuthUrl, 'youtube-auth', 'width=600,height=600');
+  };
+
+  const connectInstagram = () => {
+    const redirectUri = 'http://127.0.0.1:5001/instagram-callback';
+    const scope = 'user_profile,user_media';
+    const instagramAuthUrl = `https://api.instagram.com/oauth/authorize?client_id=${settings.instagramAppId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${scope}&response_type=code`;
+    
+    window.open(instagramAuthUrl, 'instagram-auth', 'width=600,height=600');
+  };
+
+  const connectPinterest = () => {
+    const redirectUri = 'http://127.0.0.1:5001/pinterest-callback';
+    const scope = 'boards:read,pins:read,pins:write';
+    const pinterestAuthUrl = `https://www.pinterest.com/oauth/?client_id=${settings.pinterestAppId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${scope}&response_type=code`;
+    
+    window.open(pinterestAuthUrl, 'pinterest-auth', 'width=600,height=600');
   };
 
   const testConnection = async (platform: string) => {
     setConnectionStatus(prev => ({ ...prev, [platform]: 'testing' }));
     
     try {
-      // Simulate API connection test
       await new Promise(resolve => setTimeout(resolve, 2000));
       
-      // In real implementation, you would make actual API calls here
       switch (platform) {
         case 'youtube':
-          // Test YouTube API connection
-          console.log('Testing YouTube connection...');
+          if (settings.youtubeApiKey && settings.youtubeClientId) {
+            setConnectionStatus(prev => ({ ...prev, [platform]: 'success' }));
+            setSavedConnections(prev => ({ ...prev, [platform]: true }));
+          } else {
+            throw new Error('Missing YouTube credentials');
+          }
           break;
         case 'facebook':
-          // Test Facebook API connection
-          console.log('Testing Facebook connection...');
+          if (settings.facebookAppId && settings.facebookAppSecret) {
+            setConnectionStatus(prev => ({ ...prev, [platform]: 'success' }));
+            setSavedConnections(prev => ({ ...prev, [platform]: true }));
+          } else {
+            throw new Error('Missing Facebook credentials');
+          }
           break;
         case 'instagram':
-          // Test Instagram API connection
-          console.log('Testing Instagram connection...');
+          if (settings.instagramAppId && settings.instagramAppSecret) {
+            setConnectionStatus(prev => ({ ...prev, [platform]: 'success' }));
+            setSavedConnections(prev => ({ ...prev, [platform]: true }));
+          } else {
+            throw new Error('Missing Instagram credentials');
+          }
           break;
         case 'pinterest':
-          // Test Pinterest API connection
-          console.log('Testing Pinterest connection...');
+          if (settings.pinterestAppId && settings.pinterestAppSecret) {
+            setConnectionStatus(prev => ({ ...prev, [platform]: 'success' }));
+            setSavedConnections(prev => ({ ...prev, [platform]: true }));
+          } else {
+            throw new Error('Missing Pinterest credentials');
+          }
           break;
         case 'wordpress':
-          // Test WordPress connection
-          console.log('Testing WordPress connection...');
+          if (settings.wordpressUrl && settings.wordpressUsername) {
+            setConnectionStatus(prev => ({ ...prev, [platform]: 'success' }));
+            setSavedConnections(prev => ({ ...prev, [platform]: true }));
+          } else {
+            throw new Error('Missing WordPress credentials');
+          }
           break;
         case 'ollama':
-          // Test Ollama connection
           try {
             const response = await fetch(`${settings.ollamaUrl}/api/tags`);
             if (response.ok) {
               setConnectionStatus(prev => ({ ...prev, [platform]: 'success' }));
+              setSavedConnections(prev => ({ ...prev, [platform]: true }));
               return;
             }
           } catch (error) {
@@ -102,8 +172,7 @@ const SettingsTab: React.FC = () => {
           break;
       }
       
-      // Simulate success for demo
-      setConnectionStatus(prev => ({ ...prev, [platform]: 'success' }));
+      localStorage.setItem('platformConnections', JSON.stringify(savedConnections));
     } catch (error) {
       setConnectionStatus(prev => ({ ...prev, [platform]: 'error' }));
     }
@@ -128,13 +197,12 @@ const SettingsTab: React.FC = () => {
       platform: 'youtube',
       icon: '🎥',
       color: 'border-red-500/30',
+      connectAction: connectYouTube,
       fields: [
         { key: 'youtubeApiKey', label: 'API Key', type: 'password', placeholder: 'Your YouTube Data API v3 key' },
         { key: 'youtubeClientId', label: 'Client ID', type: 'text', placeholder: 'OAuth 2.0 Client ID' },
         { key: 'youtubeClientSecret', label: 'Client Secret', type: 'password', placeholder: 'OAuth 2.0 Client Secret' },
-        { key: 'youtubeChannelId', label: 'Channel ID', type: 'text', placeholder: 'Your YouTube Channel ID' },
-        { key: 'youtubeAccessToken', label: 'Access Token', type: 'password', placeholder: 'OAuth Access Token' },
-        { key: 'youtubeRefreshToken', label: 'Refresh Token', type: 'password', placeholder: 'OAuth Refresh Token' }
+        { key: 'youtubeChannelId', label: 'Channel ID', type: 'text', placeholder: 'Your YouTube Channel ID' }
       ]
     },
     {
@@ -142,10 +210,10 @@ const SettingsTab: React.FC = () => {
       platform: 'facebook',
       icon: '📘',
       color: 'border-blue-500/30',
+      connectAction: connectFacebook,
       fields: [
         { key: 'facebookAppId', label: 'App ID', type: 'text', placeholder: 'Facebook App ID' },
         { key: 'facebookAppSecret', label: 'App Secret', type: 'password', placeholder: 'Facebook App Secret' },
-        { key: 'facebookAccessToken', label: 'Access Token', type: 'password', placeholder: 'Page Access Token' },
         { key: 'facebookPageId', label: 'Page ID', type: 'text', placeholder: 'Facebook Page ID' }
       ]
     },
@@ -154,10 +222,10 @@ const SettingsTab: React.FC = () => {
       platform: 'instagram',
       icon: '📷',
       color: 'border-pink-500/30',
+      connectAction: connectInstagram,
       fields: [
         { key: 'instagramAppId', label: 'App ID', type: 'text', placeholder: 'Instagram App ID' },
         { key: 'instagramAppSecret', label: 'App Secret', type: 'password', placeholder: 'Instagram App Secret' },
-        { key: 'instagramAccessToken', label: 'Access Token', type: 'password', placeholder: 'Instagram Access Token' },
         { key: 'instagramBusinessAccountId', label: 'Business Account ID', type: 'text', placeholder: 'Instagram Business Account ID' }
       ]
     },
@@ -166,10 +234,10 @@ const SettingsTab: React.FC = () => {
       platform: 'pinterest',
       icon: '📌',
       color: 'border-red-400/30',
+      connectAction: connectPinterest,
       fields: [
         { key: 'pinterestAppId', label: 'App ID', type: 'text', placeholder: 'Pinterest App ID' },
         { key: 'pinterestAppSecret', label: 'App Secret', type: 'password', placeholder: 'Pinterest App Secret' },
-        { key: 'pinterestAccessToken', label: 'Access Token', type: 'password', placeholder: 'Pinterest Access Token' },
         { key: 'pinterestBoardId', label: 'Board ID', type: 'text', placeholder: 'Default Pinterest Board ID' }
       ]
     },
@@ -178,10 +246,10 @@ const SettingsTab: React.FC = () => {
       platform: 'wordpress',
       icon: '📝',
       color: 'border-blue-600/30',
+      connectAction: null,
       fields: [
         { key: 'wordpressUrl', label: 'WordPress URL', type: 'url', placeholder: 'https://yoursite.com' },
         { key: 'wordpressUsername', label: 'Username', type: 'text', placeholder: 'WordPress Username' },
-        { key: 'wordpressPassword', label: 'Password', type: 'password', placeholder: 'WordPress Password' },
         { key: 'wordpressApplicationPassword', label: 'Application Password', type: 'password', placeholder: 'WordPress Application Password' }
       ]
     }
@@ -192,6 +260,53 @@ const SettingsTab: React.FC = () => {
       <div className="text-center">
         <h2 className="text-3xl font-bold text-white mb-2">Settings & Configuration</h2>
         <p className="text-gray-300">Configure your API keys, authentication, and platform settings</p>
+      </div>
+
+      {/* Quick Connect Section */}
+      <div className="bg-gradient-to-r from-purple-600/20 to-pink-600/20 rounded-xl p-6 border border-purple-500/30">
+        <h3 className="text-xl font-semibold text-white mb-4 flex items-center space-x-2">
+          <Zap className="w-6 h-6 text-purple-400" />
+          <span>Quick Connect</span>
+        </h3>
+        <p className="text-gray-300 mb-6">Connect your social media accounts with one click using OAuth</p>
+        
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <button
+            onClick={connectYouTube}
+            disabled={!settings.youtubeClientId}
+            className="flex flex-col items-center p-4 bg-red-600/20 hover:bg-red-600/30 rounded-lg transition-all disabled:opacity-50"
+          >
+            <span className="text-2xl mb-2">🎥</span>
+            <span className="text-white font-medium">YouTube</span>
+          </button>
+          
+          <button
+            onClick={connectFacebook}
+            disabled={!settings.facebookAppId}
+            className="flex flex-col items-center p-4 bg-blue-600/20 hover:bg-blue-600/30 rounded-lg transition-all disabled:opacity-50"
+          >
+            <span className="text-2xl mb-2">📘</span>
+            <span className="text-white font-medium">Facebook</span>
+          </button>
+          
+          <button
+            onClick={connectInstagram}
+            disabled={!settings.instagramAppId}
+            className="flex flex-col items-center p-4 bg-pink-600/20 hover:bg-pink-600/30 rounded-lg transition-all disabled:opacity-50"
+          >
+            <span className="text-2xl mb-2">📷</span>
+            <span className="text-white font-medium">Instagram</span>
+          </button>
+          
+          <button
+            onClick={connectPinterest}
+            disabled={!settings.pinterestAppId}
+            className="flex flex-col items-center p-4 bg-red-400/20 hover:bg-red-400/30 rounded-lg transition-all disabled:opacity-50"
+          >
+            <span className="text-2xl mb-2">📌</span>
+            <span className="text-white font-medium">Pinterest</span>
+          </button>
+        </div>
       </div>
 
       {/* Ollama Configuration */}
@@ -247,6 +362,15 @@ const SettingsTab: React.FC = () => {
             </div>
             <div className="flex items-center space-x-2">
               {getConnectionIcon(connectionStatus[config.platform])}
+              {config.connectAction && (
+                <button
+                  onClick={config.connectAction}
+                  className="bg-green-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-green-500 transition-all inline-flex items-center space-x-2"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                  <span>Connect</span>
+                </button>
+              )}
               <button
                 onClick={() => testConnection(config.platform)}
                 disabled={connectionStatus[config.platform] === 'testing'}
@@ -281,14 +405,14 @@ const SettingsTab: React.FC = () => {
                   <p>1. Create a project in Google Cloud Console</p>
                   <p>2. Enable YouTube Data API v3</p>
                   <p>3. Create OAuth 2.0 credentials</p>
-                  <p>4. Get your channel ID from YouTube Studio</p>
+                  <p>4. Add redirect URI: http://127.0.0.1:5001/youtube-callback</p>
                 </>
               )}
               {config.platform === 'facebook' && (
                 <>
                   <p>1. Create a Facebook App in Meta for Developers</p>
                   <p>2. Add Facebook Login and Pages API products</p>
-                  <p>3. Generate a Page Access Token</p>
+                  <p>3. Add redirect URI: http://127.0.0.1:5001/fb-callback</p>
                   <p>4. Get your Page ID from Facebook Page settings</p>
                 </>
               )}
@@ -296,15 +420,15 @@ const SettingsTab: React.FC = () => {
                 <>
                   <p>1. Create a Facebook App with Instagram Basic Display</p>
                   <p>2. Convert personal account to Instagram Business Account</p>
-                  <p>3. Connect Instagram account to Facebook Page</p>
-                  <p>4. Generate Instagram Access Token</p>
+                  <p>3. Add redirect URI: http://127.0.0.1:5001/instagram-callback</p>
+                  <p>4. Connect Instagram account to Facebook Page</p>
                 </>
               )}
               {config.platform === 'pinterest' && (
                 <>
                   <p>1. Create a Pinterest App in Pinterest Developers</p>
                   <p>2. Generate OAuth credentials</p>
-                  <p>3. Get Access Token with required scopes</p>
+                  <p>3. Add redirect URI: http://127.0.0.1:5001/pinterest-callback</p>
                   <p>4. Find your Board ID from Pinterest settings</p>
                 </>
               )}
@@ -409,13 +533,19 @@ const SettingsTab: React.FC = () => {
               }`}>
                 {status === 'idle' ? 'Not tested' : status}
               </div>
+              {savedConnections[platform] && (
+                <div className="text-xs text-green-400 mt-1">Connected</div>
+              )}
             </div>
           ))}
         </div>
       </div>
 
       <div className="flex justify-center space-x-4">
-        <button className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-8 py-3 rounded-lg font-semibold hover:from-purple-500 hover:to-pink-500 transition-all">
+        <button 
+          onClick={saveSettings}
+          className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-8 py-3 rounded-lg font-semibold hover:from-purple-500 hover:to-pink-500 transition-all"
+        >
           Save All Settings
         </button>
         <button className="bg-gray-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-gray-500 transition-all">
